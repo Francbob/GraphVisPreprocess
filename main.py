@@ -4,6 +4,8 @@ import networkx as nx
 import sys
 import json
 import os.path
+from parse import parse_node2node
+from parse import parse_json_d3
 
 from networkx.readwrite import json_graph
 
@@ -11,7 +13,7 @@ from networkx.readwrite import json_graph
 NUM_REAL_NODES = 0
 
 
-def save_graph(G, filepath, args):
+def save_graph(rootIdx, G, filepath, args):
 
     d = json_graph.node_link_data(
         G,
@@ -25,6 +27,8 @@ def save_graph(G, filepath, args):
     del d['directed']
     del d['multigraph']
     del d['graph']
+
+    d['rootIdx'] = rootIdx
 
     if not args.virtual:
         d['clusters'] = args.cluster_list
@@ -43,12 +47,13 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
     :return:
     """
     for n in Graph.nodes_iter():
-        Graph.node[n]['virtual'] = False
+        Graph.node[n]['virtualNode'] = False
         Graph.node[n]['height'] = 0
 
     dendo = community.generate_dendrogram(Graph, resolution=resolution)
 
     num_last_level_nodes = 0
+    rootIdx = 0
     for level, partition in enumerate(dendo):
         clusters = list(set(partition.values()))
         # number of nodes in current graph
@@ -58,7 +63,7 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
         Graph.add_nodes_from([(num_nodes + idx, {
             'label': 'Node_'+str(idx),
             'childIdx': [],
-            'virtual': True,
+            'virtualNode': True,
             'ancIdx': None,
             'idx': num_nodes + idx,
             'height': level + 1
@@ -71,10 +76,11 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
 
         # The highest level, add a root
         if level == len(dendo) - 1:
+            rootIdx = len(Graph.node)
             Graph.add_nodes_from([(len(Graph.node), {
                 'label': 'Node_' + str(len(Graph.node)),
                 'childIdx': [num_nodes + idx for idx in clusters],
-                'virtual': True,
+                'virtualNode': True,
                 'ancIdx': None,
                 'idx': len(Graph.node),
                 'height': level + 2
@@ -84,7 +90,7 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
 
         num_last_level_nodes = num_nodes
 
-    return Graph
+    return rootIdx, Graph
 
 
 def hierarchical_clustering(G, resolution=1):
@@ -154,35 +160,18 @@ def hierarchical_clustering(G, resolution=1):
     return cluster_list
 
 
-def parse_json_d3(filepath):
-    print('Reading {}'.format(filepath))
-
-    G = nx.Graph()
-
-    with open(filepath) as f:
-        d = json.load(f)
-
-    n_idx = {node['id']: idx for idx, node in enumerate(d['nodes'])}
-    # Set the number of nodes of current graph
-    NUM_REAL_NODES = len(n_idx)
-
-    G.add_nodes_from([(idx, {'label': label, 'idx': idx}) for label, idx in n_idx.items()])
-
-    G.add_edges_from([(n_idx[e['source']], n_idx[e['target']])
-                      for e in d['links']])
-
-    return G
-
-
 def make_argparser():
     p = argparse.ArgumentParser()
     p.add_argument('filepath', type=str, help='input filepath')
+    p.add_argument('-t', '--filetype', type=str, default='json')
+    p.add_argument('-n', '--nodenumber', type=int, default=2000)
     p.add_argument('-r', '--resolution', type=float,
                    help='resolution parameter for hierarchical clustering', default=1.0)
     p.add_argument('-m', '--method', type=str, default='hierarchy', help="The pre-processing method")
     p.add_argument('-v', '--virtual', type=bool, default=True, help="Using virtual nodes")
     p.add_argument('--cluster_list', type=list, default=[])
-    p.add_argument('-s', '--save', type=str, default='/Users/francbob/Projects/GraphVisPreprocess/result/')
+    p.add_argument('-s', '--save', type=str, default='/Users/francbob/Desktop/UC '
+                                                     'Davis/Project/ViDiImmersiveH3Layout/Assets/StreamingAssets/')
     return p
 
 
@@ -195,14 +184,17 @@ def main():
 
     args = argparser.parse_args()
 
-    if '.json' in args.filepath:
+    if args.filetype == 'json':
         G = parse_json_d3(args.filepath)
+    elif args.filetype == 'node2node':
+        G = parse_node2node(args)
     else:
         argparser.print_help()
         return
 
+    rootIdx = 0
     if args.method == 'hierarchy' and args.virtual:
-        G = hierarchical_cluster_with_vn(G, args)
+        rootIdx, G = hierarchical_cluster_with_vn(G, args)
     else:
         cluster_list = hierarchical_clustering(G, resolution=args.resolution)
 
@@ -210,7 +202,7 @@ def main():
     filename = os.path.splitext(basename)[0]
 
 
-    save_graph(G,
+    save_graph(rootIdx, G,
                args.save + '{}'.format(filename + '.vidi.json'), args)
 
 
