@@ -46,6 +46,7 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
     :param resolution:
     :return:
     """
+    # Properties for non-virtual nodes
     for n in Graph.nodes_iter():
         Graph.node[n]['virtualNode'] = False
         Graph.node[n]['height'] = 0
@@ -54,6 +55,8 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
 
     num_last_level_nodes = 0
     rootIdx = 0
+
+    # Loop by the hierarchical layer
     for level, partition in enumerate(dendo):
         clusters = list(set(partition.values()))
         # number of nodes in current graph
@@ -61,7 +64,7 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
 
         # Add virtual Nodes
         Graph.add_nodes_from([(num_nodes + idx, {
-            'label': 'Node_'+str(idx),
+            'label': 'Node_'+str(num_nodes + idx),
             'childIdx': [],
             'virtualNode': True,
             'ancIdx': None,

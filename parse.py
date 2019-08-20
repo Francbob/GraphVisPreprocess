@@ -39,10 +39,13 @@ def parse_node2node(args):
             end = link[1]
 
             # avoid circle
-            if node_limit >= source != end <= node_limit:
-                link_set.append(link)
-                node_set.add(source)
-                node_set.add(end)
+            if node_limit >= source and end <= node_limit:
+                if source != end:
+                    link_set.append(link)
+                    node_set.add(source)
+                    node_set.add(end)
+                else:
+                    node_set.add(source)
 
         graph.add_nodes_from([(nodeIdx, {'label': 'node_' + str(nodeIdx), 'idx': nodeIdx}) for nodeIdx in node_set])
         graph.add_edges_from([(link[0], link[1]) for link in link_set])
