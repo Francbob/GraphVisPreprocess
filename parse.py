@@ -2,6 +2,15 @@ import networkx as nx
 import argparse
 import json
 
+def parse_from_gml(filepath):
+    print('Reading {}'.format(filepath))
+
+    G = nx.read_gml(filepath, label='id')
+    for n in G.nodes_iter():
+        G.node[n]['idx'] = n
+        G.node[n]['label'] = 'node_' + str(n)
+
+    return G
 
 def parse_json_d3(filepath):
     print('Reading {}'.format(filepath))

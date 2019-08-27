@@ -41,7 +41,7 @@ See samples in  [./data/](https://github.com/Francbob/GraphVisPreprocess/tree/ma
       "ancIdx": 115
     }
   ],
-  'links': [
+  "links": [
      {
        "sourceIdx": 81,
        "targetIdx": 82

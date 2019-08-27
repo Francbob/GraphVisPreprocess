@@ -4,9 +4,12 @@ import networkx as nx
 import sys
 import json
 import os.path
+import pickle
+# import pandas as pd
 from parse import parse_node2node
 from parse import parse_json_d3
 
+from parse import parse_from_gml
 from networkx.readwrite import json_graph
 
 # The number of nodes in the graph
@@ -191,6 +194,8 @@ def main():
         G = parse_json_d3(args.filepath)
     elif args.filetype == 'node2node':
         G = parse_node2node(args)
+    elif args.filetype == 'gml':
+        G = parse_from_gml(args.filepath)
     else:
         argparser.print_help()
         return
@@ -210,4 +215,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'rb')
+
+    obj = pickle.load(f)
+    f.close()
+    f = open('/Users/francbob/Desktop/UC Davis/Project/ViDiImmersiveH3Layout/Assets/StreamingAssets/data1.vidi.json', 'w')
+    # df = pd.Data
+    json.dump(obj, f)
+    f.close()
