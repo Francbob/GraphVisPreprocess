@@ -1,34 +1,62 @@
 import graph_tool.all as gt
 import json
 import pickle
+import argparse
 
 
-def export_dataset(name, filepath):
+def export_dataset(name):
     g = gt.collection.data[name]
 
     json_file = hierarchy_partition(g)
-    f = open('./data', 'wb')
+    f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'wb')
     pickle.dump(json_file, f)
-    # json.dump(f, json_file)
-
-    # for e in g.edges():
-    #     f.write(str(int(e.source())) + ' ' + str(int(e.target())) + '\n')
     f.close()
     return g
 
+def get_hierarchy_gt(graph, graph_json, state):
+    # Get the partition from blocks
+    levels = state.get_levels()
+    level_num = len(levels)
+    vertex_num = len(graph.get_vertices())
+    level_block_count = []
+    for level in range(0, level_num):
+        level_block_count.append(levels[level].B)
 
-def hierarchy_partition(graph):
-    graph_json = {}
-    graph_json['nodes'] = []
-    graph_json['links'] = []
+    level = 0
+    tree, label, order = gt.get_hierarchy_tree(state)
+    for v_idx in tree.get_vertices():
+        v = tree.vertex(v_idx)
+        label_v = label[v]
+        # A new level
+        if v_idx != 0 and label_v == 0:
+            level += 1
 
-    # form the json file
-    for e in graph.edges():
-        graph_json['links'].append({
-            'sourceIdx': int(e.source()),
-            'targetIdx': int(e.target())
-        })
+        assert v_idx == len(graph_json['nodes'])
+        node = {
+            'label': 'node_' + str(v_idx),
+            'idx': int(v_idx),
+            'height': level,
+            'ancIdx': None,
+            'childIdx': []
+        }
+        # Virtual Node
+        if level == 0:
+            node['virtualNode'] = False
+        else:
+            node['virtualNode'] = True
+        # Hierarchy
+        if level != 0:
+            for vertex in v.out_neighbors():
+                node['childIdx'].append(int(vertex))
+                graph_json['nodes'][int(vertex)]['ancIdx'] = int(v_idx)
 
+        graph_json['nodes'].append(node)
+
+    graph_json['rootIdx'] = len(graph_json['nodes']) - 1
+
+
+
+def get_hierarchy_hand(graph, graph_json, state):
     for v in graph.get_vertices():
         assert v == len(graph_json['nodes'])
         graph_json['nodes'].append({
@@ -38,20 +66,17 @@ def hierarchy_partition(graph):
             'height': 0,
             'ancIdx': None
         })
-
-    vertex_num = len(graph.get_vertices())
-    # find the latent hierarchical tree structure
-    state = gt.minimize_nested_blockmodel_dl(graph, verbose=True)
+    # Get the partition from blocks
     levels = state.get_levels()
     level_num = len(levels)
-
+    vertex_num = len(graph.get_vertices())
+    partition = {}
+    virtual_node_list = set()
     level_block_count = []
     for level in range(0, level_num):
         level_block_count.append(levels[level].B)
 
-    # Get the partition from blocks
-    partition = {}
-    virtual_node_list = set()
+
     for vertex in graph.get_vertices():
         for level in range(0, level_num):
             r = levels[level].get_blocks()[vertex]
@@ -93,14 +118,37 @@ def hierarchy_partition(graph):
             for childIdx in graph_json['nodes'][key]['childIdx']:
                 graph_json['nodes'][childIdx]['ancIdx'] = int(key)
 
-    graph_json['rootIdx'] = len(graph_json['nodes'])-1
+    graph_json['rootIdx'] = len(graph_json['nodes']) - 1
     for i in range(len(graph_json['nodes']) - 1):
         if graph_json['nodes'][i]['ancIdx'] is None:
             graph_json['nodes'][i]['ancIdx'] = graph_json['rootIdx']
 
     return graph_json
 
+def hierarchy_partition(graph):
+    graph_json = {}
+    graph_json['nodes'] = []
+    graph_json['links'] = []
+
+    # form the json file
+    for e in graph.edges():
+        graph_json['links'].append({
+            'sourceIdx': int(e.source()),
+            'targetIdx': int(e.target())
+        })
+
+    # find the latent hierarchical tree structure
+    state = gt.minimize_nested_blockmodel_dl(graph, verbose=True)
+
+    get_hierarchy_gt(graph, graph_json, state)
+
+    return graph_json
+
 
 if __name__ == '__main__':
-    print(export_dataset('celegansneural', '/Users/francbob/Projects/GraphVisPreprocess/data/node2node_data/data.txt'))
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dataset', default='celegansneural')
+    args = parser.parse_args()
+
+    print(export_dataset(args.dataset))
 

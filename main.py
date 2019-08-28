@@ -168,9 +168,10 @@ def hierarchical_clustering(G, resolution=1):
 
 def make_argparser():
     p = argparse.ArgumentParser()
-    p.add_argument('filepath', type=str, help='input filepath')
+    p.add_argument('-f', '--filepath', type=str, default="/Users/francbob/Projects/GraphVisPreprocess/data/celegansneural.json"
+                   , help='input filepath')
     p.add_argument('-t', '--filetype', type=str, default='json')
-    p.add_argument('-n', '--nodenumber', type=int, default=2000)
+    p.add_argument('-n', '--nodenumber', type=int, default=200000)
     p.add_argument('-r', '--resolution', type=float,
                    help='resolution parameter for hierarchical clustering', default=1.0)
     p.add_argument('-m', '--method', type=str, default='hierarchy', help="The pre-processing method")
@@ -178,6 +179,7 @@ def make_argparser():
     p.add_argument('--cluster_list', type=list, default=[])
     p.add_argument('-s', '--save', type=str, default='/Users/francbob/Desktop/UC '
                                                      'Davis/Project/ViDiImmersiveH3Layout/Assets/StreamingAssets/')
+    p.add_argument('-d', '--dataset', type=str, default="data")
     return p
 
 
@@ -196,6 +198,14 @@ def main():
         G = parse_node2node(args)
     elif args.filetype == 'gml':
         G = parse_from_gml(args.filepath)
+    elif args.filetype == 'pickle':
+        f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'rb')
+        obj = pickle.load(f)
+        f.close()
+        f = open(args.save + '{}'.format(args.dataset + '.vidi.json'), 'w')
+        json.dump(obj, f)
+        f.close()
+        return
     else:
         argparser.print_help()
         return
@@ -215,12 +225,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
-    f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'rb')
-
-    obj = pickle.load(f)
-    f.close()
-    f = open('/Users/francbob/Desktop/UC Davis/Project/ViDiImmersiveH3Layout/Assets/StreamingAssets/data1.vidi.json', 'w')
-    # df = pd.Data
-    json.dump(obj, f)
-    f.close()
+    main()
