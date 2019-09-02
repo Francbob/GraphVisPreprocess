@@ -1,6 +1,44 @@
 import networkx as nx
 import argparse
 import json
+import re
+
+def parse_walrus_graph(filepath):
+    print('Reading {}'.format(filepath))
+    state = None
+    G = nx.Graph()
+    edges = []
+
+    with open(filepath) as f:
+        lines = f.readlines()
+        for line in lines:
+            if line == '\'links\': [\n':
+                state = 'links'
+                continue
+            if line == '\'treelinks\':[\n':
+                state = 'tree'
+                continue
+            if state == 'links':
+                if line == ']\n':
+                    continue
+
+                nodes = re.findall(r'[0-9]+', line)
+                G.add_edge(int(nodes[0]), int(nodes[1]), tree=False, parent=None)
+                edges.append([int(nodes[0]), int(nodes[1])])
+
+            elif state == 'tree':
+                if line == ']':
+                    continue
+
+                edgeIdx = int(re.findall(r'[0-9]+', line)[0])
+                G[edges[edgeIdx][0]][edges[edgeIdx][1]]['tree'] = True
+                G[edges[edgeIdx][0]][edges[edgeIdx][1]]['parent'] = edges[edgeIdx][0]
+                continue
+
+    # TODO return rootIdx and Graph
+    return 0, G
+
+
 
 def parse_from_gml(filepath):
     print('Reading {}'.format(filepath))

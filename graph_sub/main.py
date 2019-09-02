@@ -4,10 +4,10 @@ import pickle
 import argparse
 
 
-def export_dataset(name):
+def export_dataset(name, args):
     g = gt.collection.data[name]
 
-    json_file = hierarchy_partition(g)
+    json_file = hierarchy_partition(g, args)
     f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'wb')
     pickle.dump(json_file, f)
     f.close()
@@ -125,7 +125,7 @@ def get_hierarchy_hand(graph, graph_json, state):
 
     return graph_json
 
-def hierarchy_partition(graph):
+def hierarchy_partition(graph, args):
     graph_json = {}
     graph_json['nodes'] = []
     graph_json['links'] = []
@@ -138,7 +138,7 @@ def hierarchy_partition(graph):
         })
 
     # find the latent hierarchical tree structure
-    state = gt.minimize_nested_blockmodel_dl(graph, verbose=True)
+    state = gt.minimize_nested_blockmodel_dl(graph, verbose=args.verbose)
 
     get_hierarchy_gt(graph, graph_json, state)
 
@@ -148,7 +148,8 @@ def hierarchy_partition(graph):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dataset', default='celegansneural')
+    parser.add_argument('-v', '--verbose', default=False)
     args = parser.parse_args()
 
-    print(export_dataset(args.dataset))
+    print(export_dataset(args.dataset, args))
 

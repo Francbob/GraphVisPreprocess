@@ -8,7 +8,7 @@ import pickle
 # import pandas as pd
 from parse import parse_node2node
 from parse import parse_json_d3
-
+from parse import parse_walrus_graph
 from parse import parse_from_gml
 from networkx.readwrite import json_graph
 
@@ -39,6 +39,40 @@ def save_graph(rootIdx, G, filepath, args):
     print('Saving {}'.format(filepath))
     with open(filepath, 'w') as f:
         json.dump(d, f)
+
+
+def handle_walrus_graph(Graph, rootIdx):
+    for n in Graph.nodes_iter():
+        Graph.node[n]['virtualNode'] = False
+        Graph.node[n]['height'] = 0
+        Graph.node[n]['idx'] = n
+        Graph.node[n]['label'] = 'node_' + str(n)
+        Graph.node[n]['ancIdx'] = None
+        Graph.node[n]['childIdx'] = []
+
+
+    # for n, nbrs in Graph.adj.items():
+    #     for nbr, attr in nbrs.items():
+    #         if attr['tree'] and n == attr['parent']:
+    #             Graph.node[n]['virtualNode'] = True
+    #             Graph.node[n]['childIdx'].append(nbr)
+    #             Graph.node[nbr]['ancIdx'] = n
+    spanning_tree_traverse(Graph, rootIdx)
+
+
+def spanning_tree_traverse(Graph, rootIdx):
+    stack = [rootIdx]
+
+    while len(stack) != 0:
+        nodeIdx = stack.pop()
+        nbrs = Graph.adj[nodeIdx]
+
+        for nbr, attr in nbrs.items():
+            if attr['tree'] and (not Graph.node[nbr]['virtualNode']):
+                Graph.node[nodeIdx]['virtualNode'] = True
+                Graph.node[nodeIdx]['childIdx'].append(nbr)
+                Graph.node[nbr]['ancIdx'] = nodeIdx
+                stack.append(nbr)
 
 
 def hierarchical_cluster_with_vn(Graph, args, resolution=1):
@@ -198,6 +232,15 @@ def main():
         G = parse_node2node(args)
     elif args.filetype == 'gml':
         G = parse_from_gml(args.filepath)
+    elif args.filetype == 'walrus':
+        rootIdx, G = parse_walrus_graph(args.filepath)
+        # handle_walrus_graph(G, rootIdx)
+        # basename = os.path.basename(args.filepath)
+        # filename = os.path.splitext(basename)[0]
+        #
+        # save_graph(rootIdx, G,
+        #            args.save + '{}'.format(filename + '.vidi.json'), args)
+        # return
     elif args.filetype == 'pickle':
         f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'rb')
         obj = pickle.load(f)
