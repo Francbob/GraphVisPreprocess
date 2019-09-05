@@ -234,13 +234,13 @@ def main():
         G = parse_from_gml(args.filepath)
     elif args.filetype == 'walrus':
         rootIdx, G = parse_walrus_graph(args.filepath)
-        # handle_walrus_graph(G, rootIdx)
-        # basename = os.path.basename(args.filepath)
-        # filename = os.path.splitext(basename)[0]
-        #
-        # save_graph(rootIdx, G,
-        #            args.save + '{}'.format(filename + '.vidi.json'), args)
-        # return
+        handle_walrus_graph(G, rootIdx)
+        basename = os.path.basename(args.filepath)
+        filename = os.path.splitext(basename)[0]
+
+        save_graph(rootIdx, G,
+                   args.save + '{}'.format(filename + '.vidi.json'), args)
+        return
     elif args.filetype == 'pickle':
         f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'rb')
         obj = pickle.load(f)
