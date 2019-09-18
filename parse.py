@@ -3,6 +3,7 @@ import argparse
 import json
 import re
 
+
 def parse_walrus_graph(filepath):
     print('Reading {}'.format(filepath))
     state = None
@@ -39,7 +40,6 @@ def parse_walrus_graph(filepath):
     return 0, G
 
 
-
 def parse_from_gml(filepath):
     print('Reading {}'.format(filepath))
 
@@ -49,6 +49,7 @@ def parse_from_gml(filepath):
         G.node[n]['label'] = 'node_' + str(n)
 
     return G
+
 
 def parse_json_d3(filepath):
     print('Reading {}'.format(filepath))

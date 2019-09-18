@@ -50,13 +50,6 @@ def handle_walrus_graph(Graph, rootIdx):
         Graph.node[n]['ancIdx'] = None
         Graph.node[n]['childIdx'] = []
 
-
-    # for n, nbrs in Graph.adj.items():
-    #     for nbr, attr in nbrs.items():
-    #         if attr['tree'] and n == attr['parent']:
-    #             Graph.node[n]['virtualNode'] = True
-    #             Graph.node[n]['childIdx'].append(nbr)
-    #             Graph.node[nbr]['ancIdx'] = n
     spanning_tree_traverse(Graph, rootIdx)
 
 
@@ -241,7 +234,9 @@ def main():
         save_graph(rootIdx, G,
                    args.save + '{}'.format(filename + '.vidi.json'), args)
         return
+
     elif args.filetype == 'pickle':
+        # Special method for the processed pickle file
         f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'rb')
         obj = pickle.load(f)
         f.close()
@@ -257,11 +252,10 @@ def main():
     if args.method == 'hierarchy' and args.virtual:
         rootIdx, G = hierarchical_cluster_with_vn(G, args)
     else:
-        cluster_list = hierarchical_clustering(G, resolution=args.resolution)
+        hierarchical_clustering(G, resolution=args.resolution)
 
     basename = os.path.basename(args.filepath)
     filename = os.path.splitext(basename)[0]
-
 
     save_graph(rootIdx, G,
                args.save + '{}'.format(filename + '.vidi.json'), args)

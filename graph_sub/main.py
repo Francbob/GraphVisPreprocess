@@ -13,11 +13,11 @@ def export_dataset(name, args):
     f.close()
     return g
 
-def get_hierarchy_gt(graph, graph_json, state):
+
+def get_hierarchy_gt(graph_json, state):
     # Get the partition from blocks
     levels = state.get_levels()
     level_num = len(levels)
-    vertex_num = len(graph.get_vertices())
     level_block_count = []
     for level in range(0, level_num):
         level_block_count.append(levels[level].B)
@@ -53,7 +53,6 @@ def get_hierarchy_gt(graph, graph_json, state):
         graph_json['nodes'].append(node)
 
     graph_json['rootIdx'] = len(graph_json['nodes']) - 1
-
 
 
 def get_hierarchy_hand(graph, graph_json, state):
@@ -125,6 +124,7 @@ def get_hierarchy_hand(graph, graph_json, state):
 
     return graph_json
 
+
 def hierarchy_partition(graph, args):
     graph_json = {}
     graph_json['nodes'] = []
@@ -140,7 +140,7 @@ def hierarchy_partition(graph, args):
     # find the latent hierarchical tree structure
     state = gt.minimize_nested_blockmodel_dl(graph, verbose=args.verbose)
 
-    get_hierarchy_gt(graph, graph_json, state)
+    get_hierarchy_gt(graph_json, state)
 
     return graph_json
 
