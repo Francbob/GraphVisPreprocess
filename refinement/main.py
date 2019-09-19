@@ -66,5 +66,5 @@ if __name__ == "__main__":
     basename = os.path.basename(args.filepath)
     filename = os.path.splitext(basename)[0]
 
-    save_graph(graph, args.save + '{}'.format(filename + '_r.vidi.json'))
+    save_graph(graph, args.save + '{}'.format(filename + '_r.json'))
 

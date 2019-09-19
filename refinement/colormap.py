@@ -2,10 +2,9 @@ import seaborn as sns
 import networkx as nx
 
 COLOR_PALETTES = [
-    'Blues_d',
-    'Greens_d',
-    'YlOrRd_d',
-    'Purples_d',
+    'Greens',
+    'Oranges',
+    'Blues',
 ]
 
 
@@ -54,7 +53,7 @@ def get_vertex_color(graph, args):
     # Get color palette
     color_platte = []
     for color in COLOR_PALETTES:
-        pl = sns.color_palette(color).as_hex()
+        pl = sns.color_palette(color, 4).as_hex()
         color_platte.append(pl)
 
     vertex_ordering(graph)
