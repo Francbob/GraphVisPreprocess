@@ -1,7 +1,17 @@
 import networkx as nx
+import igraph as ig
 import argparse
 import json
 import re
+
+
+def parse_to_igraph(filepath):
+    print('Reading {}'.format(filepath))
+
+    with open(filepath) as f:
+        d = json.load(f)
+        graph = ig.Graph()
+
 
 
 def parse_walrus_graph(filepath):

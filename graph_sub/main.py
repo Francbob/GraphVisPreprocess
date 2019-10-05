@@ -5,7 +5,11 @@ import argparse
 
 
 def export_dataset(name, args):
-    g = gt.collection.data[name]
+    g = None
+    if args.konect:
+        g = gt.collection.konect_data[name]
+    else:
+        g = gt.collection.data[name]
 
     json_file = hierarchy_partition(g, args)
     f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'wb')
@@ -149,6 +153,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dataset', default='celegansneural')
     parser.add_argument('-v', '--verbose', default=False)
+    parser.add_argument('-k', '--konect', default=False)
+
     args = parser.parse_args()
 
     print(export_dataset(args.dataset, args))
