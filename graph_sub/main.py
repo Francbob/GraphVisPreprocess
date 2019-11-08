@@ -2,6 +2,8 @@ import graph_tool.all as gt
 import json
 import pickle
 import argparse
+import networkx
+import community
 
 
 def export_dataset(name, args):
@@ -57,77 +59,6 @@ def get_hierarchy_gt(graph_json, state):
         graph_json['nodes'].append(node)
 
     graph_json['rootIdx'] = len(graph_json['nodes']) - 1
-
-
-def get_hierarchy_hand(graph, graph_json, state):
-    for v in graph.get_vertices():
-        assert v == len(graph_json['nodes'])
-        graph_json['nodes'].append({
-            'label': 'node_' + str(v),
-            'idx': int(v),
-            'virtualNode': False,
-            'height': 0,
-            'ancIdx': None
-        })
-    # Get the partition from blocks
-    levels = state.get_levels()
-    level_num = len(levels)
-    vertex_num = len(graph.get_vertices())
-    partition = {}
-    virtual_node_list = set()
-    level_block_count = []
-    for level in range(0, level_num):
-        level_block_count.append(levels[level].B)
-
-
-    for vertex in graph.get_vertices():
-        for level in range(0, level_num):
-            r = levels[level].get_blocks()[vertex]
-            idx = vertex_num + r + sum(level_block_count[:level])
-            virtual_node_list.add(idx)
-            if partition.get(idx) is None:
-                partition[idx] = {}
-                partition[idx]['child'] = []
-                partition[idx]['layer'] = int(level)
-
-            partition[idx]['child'].append(int(vertex))
-
-    virtual_node_list = sorted(list(virtual_node_list))
-    # add the block to the graph_json
-    for key in virtual_node_list:
-        assert len(graph_json['nodes']) == key
-        value = partition[key]
-        graph_json['nodes'].append({
-            'label': 'node_' + str(key),
-            'idx': int(key),
-            'virtualNode': True,
-            'height': value['layer'] + 1,
-            'ancIdx': None,
-            'childIdx': []
-        })
-        if value['layer'] == 0:
-            graph_json['nodes'][key]['childIdx'] = value['child']
-            for childIdx in value['child']:
-                graph_json['nodes'][childIdx]['ancIdx'] = int(key)
-        else:
-            child_set = set()
-            for childIdx in value['child']:
-                idx = graph_json['nodes'][childIdx]['ancIdx']
-                while graph_json['nodes'][idx]['height'] < value['layer']:
-                    idx = graph_json['nodes'][idx]['ancIdx']
-                child_set.add(idx)
-
-            graph_json['nodes'][key]['childIdx'] = list(child_set)
-            for childIdx in graph_json['nodes'][key]['childIdx']:
-                graph_json['nodes'][childIdx]['ancIdx'] = int(key)
-
-    graph_json['rootIdx'] = len(graph_json['nodes']) - 1
-    for i in range(len(graph_json['nodes']) - 1):
-        if graph_json['nodes'][i]['ancIdx'] is None:
-            graph_json['nodes'][i]['ancIdx'] = graph_json['rootIdx']
-
-    return graph_json
-
 
 def hierarchy_partition(graph, args):
     graph_json = {}

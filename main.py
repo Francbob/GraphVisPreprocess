@@ -10,6 +10,8 @@ from parse import parse_node2node
 from parse import parse_json_d3
 from parse import parse_walrus_graph
 from parse import parse_from_gml
+from parse import parse_pickle
+from parse import parse_json_nature
 from networkx.readwrite import json_graph
 
 # The number of nodes in the graph
@@ -81,14 +83,17 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
         Graph.node[n]['virtualNode'] = False
         Graph.node[n]['height'] = 0
 
-    dendo = community.generate_dendrogram(Graph, resolution=resolution)
+    dendo = community.generate_dendrogram(Graph, resolution=args.resolution)
 
     num_last_level_nodes = 0
     rootIdx = 0
 
     # Loop by the hierarchical layer
     for level, partition in enumerate(dendo):
+        if level == 0:
+            continue
         clusters = list(set(partition.values()))
+        print(level, ' :len ', len(clusters))
         # number of nodes in current graph
         num_nodes = len(Graph.node)
 
@@ -207,6 +212,7 @@ def make_argparser():
     p.add_argument('-s', '--save', type=str, default='/Users/francbob/Desktop/UC '
                                                      'Davis/Project/ViDiImmersiveH3Layout/Assets/StreamingAssets/')
     p.add_argument('-d', '--dataset', type=str, default="data")
+    p.add_argument('--nature', type=bool, default=False)
     return p
 
 
@@ -220,7 +226,10 @@ def main():
     args = argparser.parse_args()
 
     if args.filetype == 'json':
-        G = parse_json_d3(args.filepath)
+        if args.nature:
+            G = parse_json_nature(args.filepath)
+        else:
+            G = parse_json_d3(args.filepath)
     elif args.filetype == 'node2node':
         G = parse_node2node(args)
     elif args.filetype == 'gml':
@@ -240,6 +249,7 @@ def main():
         f = open('/Users/francbob/Projects/GraphVisPreprocess/graph_sub/data', 'rb')
         obj = pickle.load(f)
         f.close()
+        G = parse_pickle(obj)
         f = open(args.save + '{}'.format(args.dataset + '.vidi.json'), 'w')
         json.dump(obj, f)
         f.close()
@@ -254,8 +264,11 @@ def main():
     else:
         hierarchical_clustering(G, resolution=args.resolution)
 
-    basename = os.path.basename(args.filepath)
-    filename = os.path.splitext(basename)[0]
+    if args.filetype != 'pickle':
+        basename = os.path.basename(args.filepath)
+        filename = os.path.splitext(basename)[0]
+    else:
+        filename = args.dataset
 
     save_graph(rootIdx, G,
                args.save + '{}'.format(filename + '.vidi.json'), args)

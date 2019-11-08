@@ -1,16 +1,8 @@
 import networkx as nx
-import igraph as ig
 import argparse
 import json
 import re
 
-
-def parse_to_igraph(filepath):
-    print('Reading {}'.format(filepath))
-
-    with open(filepath) as f:
-        d = json.load(f)
-        graph = ig.Graph()
 
 
 
@@ -57,6 +49,36 @@ def parse_from_gml(filepath):
     for n in G.nodes_iter():
         G.node[n]['idx'] = n
         G.node[n]['label'] = 'node_' + str(n)
+
+    return G
+
+
+def parse_pickle(obj):
+    G = nx.Graph()
+    # n_idx = {node['id']: idx for idx, node in enumerate(obj['nodes'])}
+    # G.add_nodes_from([(idx, {'label': label, 'idx': idx}) for label, idx in n_idx.items()])
+    G.add_nodes_from([(node['idx'], {'label': node['label'], 'idx': node['idx']}) for idx, node in enumerate(obj['nodes'])])
+
+    G.add_edges_from([(e['sourceIdx'], e['targetIdx'])
+                      for e in obj['links']])
+
+    return G
+
+
+def parse_json_nature(filepath):
+    print('Reading {}'.format(filepath))
+    G = nx.Graph()
+
+    with open(filepath) as f:
+        d = json.load(f)
+
+    n_idx = {node['id']: {'idx': idx, 'title': node['title'], 'size': node['size'], 'year': node['pubYear']}
+             for idx, node in enumerate(d['nodes'])}
+    G.add_nodes_from([(node['idx'],
+                       {'label': node['title'], 'idx': node['idx'], 'size': node['size'], 'year': node['year']})
+                      for label, node in n_idx.items()])
+    G.add_edges_from([(n_idx[e['source']]['idx'], n_idx[e['target']]['idx'])
+                      for e in d['links']])
 
     return G
 
