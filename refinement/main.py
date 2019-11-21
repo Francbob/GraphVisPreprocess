@@ -4,6 +4,7 @@ import argparse
 import os
 from refinement.colormap import get_vertex_color
 from networkx.readwrite import json_graph
+from refinement.aggregation import get_links_by_levels
 
 
 def open_json_file(filepath):
@@ -33,7 +34,7 @@ def open_json_file(filepath):
     return G
 
 
-def save_graph(G, filepath):
+def save_graph(G, filepath, level_links):
     d = json_graph.node_link_data(
         G,
         attrs={
@@ -48,6 +49,7 @@ def save_graph(G, filepath):
     del d['graph']
 
     d['rootIdx'] = G.graph['rootIdx']
+    d['levelLinks'] = level_links;
 
     print('Saving {}'.format(filepath))
     with open(filepath, 'w') as f:
@@ -62,9 +64,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     graph = open_json_file(args.filepath)
     get_vertex_color(graph, args)
+    level_links = get_links_by_levels(graph)
 
     basename = os.path.basename(args.filepath)
     filename = os.path.splitext(basename)[0]
 
-    save_graph(graph, args.save + '{}'.format(filename + '_r.json'))
+    save_graph(graph, args.save + '{}'.format(filename + '_r.json'), level_links)
 

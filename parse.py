@@ -3,9 +3,6 @@ import argparse
 import json
 import re
 
-
-
-
 def parse_walrus_graph(filepath):
     print('Reading {}'.format(filepath))
     state = None

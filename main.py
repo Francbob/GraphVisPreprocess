@@ -90,8 +90,6 @@ def hierarchical_cluster_with_vn(Graph, args, resolution=1):
 
     # Loop by the hierarchical layer
     for level, partition in enumerate(dendo):
-        if level == 0:
-            continue
         clusters = list(set(partition.values()))
         print(level, ' :len ', len(clusters))
         # number of nodes in current graph
