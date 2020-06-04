@@ -12,6 +12,18 @@ def vertex_ordering(graph):
     graph.graph['leafNode'] = []
     graph.graph['community'] = []
     dfs_label(graph.graph['rootIdx'], graph, 0)
+    label_by_pub_year(graph)
+
+
+def label_by_pub_year(graph):
+    leaves = []
+    for i in graph.nodes():
+        node = graph.node[i]
+        if node['height'] == 0:
+            leaves.append(node)
+    leaves.sort(key=lambda x:(x['year'], x['leaf_order']))
+    for i in range(len(leaves)):
+        leaves[i]['leaf_order'] = i
 
 
 def dfs_label(root_idx, graph, order_idx):

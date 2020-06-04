@@ -207,8 +207,7 @@ def make_argparser():
     p.add_argument('-m', '--method', type=str, default='hierarchy', help="The pre-processing method")
     p.add_argument('-v', '--virtual', type=bool, default=True, help="Using virtual nodes")
     p.add_argument('--cluster_list', type=list, default=[])
-    p.add_argument('-s', '--save', type=str, default='/Users/francbob/Desktop/UC '
-                                                     'Davis/Project/ViDiImmersiveH3Layout/Assets/StreamingAssets/')
+    p.add_argument('-s', '--save', type=str, default='/Users/francbob/Projects/GraphVisPreprocess/data/')
     p.add_argument('-d', '--dataset', type=str, default="data")
     p.add_argument('--nature', type=bool, default=False)
     return p

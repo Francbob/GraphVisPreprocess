@@ -15,15 +15,30 @@ def open_json_file(filepath):
     with open(filepath) as f:
         d = json.load(f)
 
+    nodes = []
+    for node in d['nodes']:
+        if 'year' in node:
+            nodes.append({
+                'virtualNode': node['virtualNode'],
+                'height': node['height'],
+                'idx': node['idx'],
+                'label': node['label'],
+                'year': node['year'],
+                'ancIdx': None if 'ancIdx' not in node else node['ancIdx'],
+                'childIdx': [] if 'childIdx' not in node else node['childIdx']
+            })
+        else:
+            nodes.append({
+                'virtualNode': node['virtualNode'],
+                'height': node['height'],
+                'idx': node['idx'],
+                'label': node['label'],
+                'ancIdx': None if 'ancIdx' not in node else node['ancIdx'],
+                'childIdx': [] if 'childIdx' not in node else node['childIdx']
+            })
+
     G.add_nodes_from([
-        (node['idx'], {
-            'virtualNode': node['virtualNode'],
-            'height': node['height'],
-            'idx': node['idx'],
-            'label': node['label'],
-            'ancIdx': None if 'ancIdx' not in node else node['ancIdx'],
-            'childIdx': [] if 'childIdx' not in node else node['childIdx']
-        }) for node in d["nodes"]
+        (node['idx'], node) for node in nodes
     ])
 
     G.add_edges_from([(e['sourceIdx'], e['targetIdx'])
@@ -34,7 +49,7 @@ def open_json_file(filepath):
     return G
 
 
-def save_graph(G, filepath, level_links):
+def save_graph(G, filepath, hierarchy, link_in_node):
     d = json_graph.node_link_data(
         G,
         attrs={
@@ -49,7 +64,8 @@ def save_graph(G, filepath, level_links):
     del d['graph']
 
     d['rootIdx'] = G.graph['rootIdx']
-    d['levelLinks'] = level_links;
+    d['linkInNode'] = link_in_node
+    d['hierarchy'] = hierarchy
 
     print('Saving {}'.format(filepath))
     with open(filepath, 'w') as f:
@@ -59,15 +75,14 @@ def save_graph(G, filepath, level_links):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--filepath', type=str, help='the filepath of the vidi.json graph definition file')
-    parser.add_argument('-s', '--save', type=str, help='the path to save the data', default='/Users/francbob/Desktop/UC '
-                                                     'Davis/Project/ViDiImmersiveH3Layout/Assets/StreamingAssets/')
+    parser.add_argument('-s', '--save', type=str, help='the path to save the data', default='../data/')
     args = parser.parse_args()
     graph = open_json_file(args.filepath)
     get_vertex_color(graph, args)
-    level_links = get_links_by_levels(graph)
+    hierarchy, link_in_node = get_links_by_levels(graph)
 
     basename = os.path.basename(args.filepath)
     filename = os.path.splitext(basename)[0]
 
-    save_graph(graph, args.save + '{}'.format(filename + '_r.json'), level_links)
+    save_graph(graph, args.save + '{}'.format(filename + '_r.json'), hierarchy, link_in_node)
 

@@ -1,0 +1,23 @@
+{
+    "density": {
+        "groundTruth": 1,
+        "candidates": [
+            1,
+            2,
+            3
+        ]
+    },
+    "sharedNeighbor": {
+        "nodeA": 1,
+        "nodeB": 2,
+        "groundTruth": [
+            5,
+            3,
+            4
+        ]
+    },
+    "strongConnection": {
+        "communityIdx": 1,
+        "groundTruth": 7
+    }
+}
